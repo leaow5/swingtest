@@ -3,7 +3,10 @@ package swingtest;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.SystemColor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,6 +17,7 @@ import java.util.List;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
@@ -53,14 +57,14 @@ public class MyFrame extends JFrame {
 	private static final long serialVersionUID = 8999460803054277945L;
 	static Logger logger = LogManager.getLogger(MyFrame.class.getName());
 	final ImageIcon icon_connect = new ImageIcon("resource//green.jpg");
-	final ImageIcon icon_disconnect = new ImageIcon(
-			"resource//green_disconnect.jpg");
-	final ImageIcon icon_main = new ImageIcon("resource//green2.jpg");
+	final ImageIcon icon_disconnect = new ImageIcon("resource//green_disconnect.jpg");
+	final ImageIcon icon_main = new ImageIcon("resource//icon.jpg");
 	final ImageIcon icon_green = new ImageIcon("resource//green0.jpg");
 	final ImageIcon icon_green2 = new ImageIcon("resource//green1.jpg");
+	final ImageIcon icon_dark = new ImageIcon("resource//dark0.jpg");
 	final ImageIcon icon_red = new ImageIcon("resource//red_main.jpg");
 	final ImageIcon icon_red2 = new ImageIcon("resource//red_dark.jpg");
-	private JPanel panel; // panel Main
+	private JPanel panel_RS232_SR; // panel Main
 	private JTextField textField_simmer;
 	protected JLabel lab_connect;
 	protected JPanel panel_Connect;
@@ -98,6 +102,11 @@ public class MyFrame extends JFrame {
 	private JTable tableNomParam;
 	private JTable table_Monitor;
 	private JTable table_Info;
+	private JTextField textField_outputPower;
+	private JTextField textField;
+	private JTextField textField_RS232_Send;
+	private JTextField textField_ReplyFromDevice;
+	private JPanel panel_Monitor1;
 
 	/**
 	 * Launch the application.
@@ -106,51 +115,7 @@ public class MyFrame extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					final MyFrame frame = new MyFrame();
-					frame.addWindowListener(new WindowListener() {
-
-						@Override
-						public void windowOpened(WindowEvent e) {
-							// TODO Auto-generated method stub
-
-						}
-
-						@Override
-						public void windowIconified(WindowEvent e) {
-							// TODO Auto-generated method stub
-
-						}
-
-						@Override
-						public void windowDeiconified(WindowEvent e) {
-							// TODO Auto-generated method stub
-
-						}
-
-						@Override
-						public void windowDeactivated(WindowEvent e) {
-							// TODO Auto-generated method stub
-
-						}
-
-						@Override
-						public void windowClosing(WindowEvent e) {
-							JOptionPane.showMessageDialog(frame, "测试退出事件\r\n");
-
-						}
-
-						@Override
-						public void windowClosed(WindowEvent e) {
-							// TODO Auto-generated method stub
-
-						}
-
-						@Override
-						public void windowActivated(WindowEvent e) {
-							// TODO Auto-generated method stub
-
-						}
-					});
+					MyFrame frame = new MyFrame();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -190,14 +155,12 @@ public class MyFrame extends JFrame {
 		SubstanceSkin skin = new BusinessBlueSteelSkin(); // 初始化有水印的皮肤
 
 		try {
-			UIManager.setLookAndFeel(
-					new SubstanceBusinessBlueSteelLookAndFeel());
+			UIManager.setLookAndFeel(new SubstanceBusinessBlueSteelLookAndFeel());
 		} catch (UnsupportedLookAndFeelException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		SubstanceLookAndFeel.setSkin(skin);
-		//
+
 		handleFrameAttr();
 
 		handleMenu();
@@ -215,8 +178,26 @@ public class MyFrame extends JFrame {
 		setResizable(false);
 		setTitle("安扬Series Control Utility");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 1024, 768);
+		// setBounds(100, 100, 1024, 768);
+		setSize(1024, 768);
 		this.setIconImage(icon_main.getImage());
+		Dimension screen = getToolkit().getScreenSize(); // 得到屏幕尺寸
+		setLocation((screen.width - getSize().width) / 2, (screen.height - getSize().height) / 2); // 设置窗口位置
+		// handleBackgroud();
+	}
+
+	/**
+	 * 设置背景
+	 */
+	private void handleBackgroud() {
+		JLabel jlpic = new JLabel();
+		ImageIcon icon = new ImageIcon("resource//bgimg.jpg");
+		icon.setImage(icon.getImage().getScaledInstance(1024, 768, Image.SCALE_DEFAULT));
+		jlpic.setBounds(0, 0, 1024, 768);
+		jlpic.setHorizontalAlignment(0);
+		jlpic.setIcon(icon);
+		this.add(jlpic);
+
 	}
 
 	/**
@@ -243,18 +224,16 @@ public class MyFrame extends JFrame {
 	 * 处理连接
 	 */
 	private void handleConnect() {
-		panel = new JPanel();
-		getContentPane().add(panel, BorderLayout.CENTER);
-		panel.setLayout(null);
+		panel_RS232_SR = new MyPanel();
+		getContentPane().add(panel_RS232_SR, BorderLayout.CENTER);
+		panel_RS232_SR.setLayout(null);
 
-		this.panel_Connect = new JPanel();
-		this.panel_Connect.setBorder(
-				new TitledBorder(UIManager.getBorder("TitledBorder.border"),
-						"Connect", TitledBorder.LEADING, TitledBorder.TOP, null,
-						SystemColor.desktop));
+		this.panel_Connect = new MyPanel();
+		this.panel_Connect.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Connect",
+				TitledBorder.LEADING, TitledBorder.TOP, null, SystemColor.desktop));
 		this.panel_Connect.setToolTipText("Connect");
 		this.panel_Connect.setBounds(10, 10, 280, 74);
-		panel.add(panel_Connect);
+		panel_RS232_SR.add(panel_Connect);
 		panel_Connect.setLayout(null);
 
 		this.btnConnect = new JButton("Connect");
@@ -285,17 +264,15 @@ public class MyFrame extends JFrame {
 	 * 处理itemNo.和Mode内容
 	 */
 	private void handleItemAndMode() {
-		JPanel panel_ItemType = new JPanel();
-		panel_ItemType.setBorder(
-				new TitledBorder(UIManager.getBorder("TitledBorder.border"),
-						"Item NO.", TitledBorder.LEADING, TitledBorder.TOP,
-						null, SystemColor.desktop));
+		JPanel panel_ItemType = new MyPanel();
+		panel_ItemType.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Item NO.",
+				TitledBorder.LEADING, TitledBorder.TOP, null, SystemColor.desktop));
 		panel_ItemType.setBounds(300, 10, 91, 74);
-		panel.add(panel_ItemType);
+		panel_RS232_SR.add(panel_ItemType);
 
 		JButton btnMode = new JButton("MODE");
 		btnMode.setBounds(401, 19, 91, 64);
-		panel.add(btnMode);
+		panel_RS232_SR.add(btnMode);
 	}
 
 	/**
@@ -304,22 +281,20 @@ public class MyFrame extends JFrame {
 	private void handleDB25() {
 		handleItemAndMode();
 		handleDB25_Control();
-		handlePRRAndSet();
-		handleStats();
-		handleInfos();
+		handlePRRAndSetForDB25();
+		handleStatsForDB25();
+		handleInfosForDB25();
 	}
 
 	/**
 	 * DB25_Control 显示区
 	 */
 	private void handleDB25_Control() {
-		JPanel panel_DB25_Control = new JPanel();
-		panel_DB25_Control.setBorder(
-				new TitledBorder(UIManager.getBorder("TitledBorder.border"),
-						"DB25 Control", TitledBorder.LEADING, TitledBorder.TOP,
-						null, SystemColor.desktop));
+		JPanel panel_DB25_Control = new MyPanel();
+		panel_DB25_Control.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "DB25 Control",
+				TitledBorder.LEADING, TitledBorder.TOP, null, SystemColor.desktop));
 		panel_DB25_Control.setBounds(10, 94, 484, 235);
-		panel.add(panel_DB25_Control);
+		panel_RS232_SR.add(panel_DB25_Control);
 		panel_DB25_Control.setLayout(null);
 
 		JLabel lblNewLabel = new JLabel("Power percent ");
@@ -346,11 +321,9 @@ public class MyFrame extends JFrame {
 		label_2.setBounds(162, 46, 18, 15);
 		panel_DB25_Control.add(label_2);
 
-		JPanel panel_Alarm = new JPanel();
-		panel_Alarm.setBorder(
-				new TitledBorder(UIManager.getBorder("TitledBorder.border"),
-						"Alarm", TitledBorder.LEADING, TitledBorder.TOP, null,
-						SystemColor.desktop));
+		JPanel panel_Alarm = new MyPanel();
+		panel_Alarm.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Alarm",
+				TitledBorder.LEADING, TitledBorder.TOP, null, SystemColor.desktop));
 		panel_Alarm.setBounds(10, 185, 464, 34);
 		panel_DB25_Control.add(panel_Alarm);
 		panel_Alarm.setLayout(null);
@@ -447,17 +420,184 @@ public class MyFrame extends JFrame {
 	}
 
 	/**
-	 * 左下区域PRR、Set显示
+	 * 处理串口模式gate显示内容
 	 */
-	private void handlePRRAndSet() {
+	private void handleGate_Control() {
+		JPanel panel_RS232 = new MyPanel();
+		panel_RS232.setLayout(null);
+		panel_RS232.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "RS-242 Control",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panel_RS232.setBounds(8, 84, 484, 74);
+		panel_RS232_SR.add(panel_RS232);
 
-		JPanel panel_DB25_PRR = new JPanel();
-		panel_DB25_PRR.setBorder(
-				new TitledBorder(UIManager.getBorder("TitledBorder.border"),
-						"Extended PRR", TitledBorder.LEADING, TitledBorder.TOP,
-						null, SystemColor.desktop));
-		panel_DB25_PRR.setBounds(10, 335, 484, 85);
-		panel.add(panel_DB25_PRR);
+		JButton button_Laser = new JButton("Laser ON");
+		button_Laser.setBounds(80, 22, 120, 42);
+		panel_RS232.add(button_Laser);
+
+		JButton button_GuildLaser = new JButton("Guild Laser ON");
+		button_GuildLaser.setEnabled(false);
+		button_GuildLaser.setBounds(354, 22, 120, 42);
+		panel_RS232.add(button_GuildLaser);
+
+		JLabel label_LaserON = new JLabel(icon_green);
+		label_LaserON.setBounds(10, 22, 20, 20);
+		panel_RS232.add(label_LaserON);
+
+		JLabel lblOn = new JLabel();
+		lblOn.setText("ON");
+		lblOn.setHorizontalAlignment(SwingConstants.LEFT);
+		lblOn.setBounds(35, 22, 40, 20);
+		panel_RS232.add(lblOn);
+
+		JLabel label_LaserOFF = new JLabel(icon_dark);
+		label_LaserOFF.setBounds(10, 44, 20, 20);
+		panel_RS232.add(label_LaserOFF);
+
+		JLabel lblOff = new JLabel((Icon) null);
+		lblOff.setText("OFF");
+		lblOff.setHorizontalAlignment(SwingConstants.LEFT);
+		lblOff.setBounds(35, 44, 40, 20);
+		panel_RS232.add(lblOff);
+
+		JLabel label_GLaserOFF = new JLabel(icon_dark);
+		label_GLaserOFF.setBounds(282, 44, 20, 20);
+		panel_RS232.add(label_GLaserOFF);
+
+		JLabel label_GLaserON = new JLabel(icon_green);
+		label_GLaserON.setBounds(282, 22, 20, 20);
+		panel_RS232.add(label_GLaserON);
+
+		JLabel label_2 = new JLabel((Icon) null);
+		label_2.setText("ON");
+		label_2.setHorizontalAlignment(SwingConstants.LEFT);
+		label_2.setBounds(307, 22, 40, 20);
+		panel_RS232.add(label_2);
+
+		JLabel label_3 = new JLabel((Icon) null);
+		label_3.setText("OFF");
+		label_3.setHorizontalAlignment(SwingConstants.LEFT);
+		label_3.setBounds(307, 44, 40, 20);
+		panel_RS232.add(label_3);
+
+		JPanel panel_outputPower = new MyPanel();
+		panel_outputPower.setLayout(null);
+		panel_outputPower.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Output Power",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panel_outputPower.setBounds(10, 155, 482, 65);
+		panel_RS232_SR.add(panel_outputPower);
+
+		JSlider slider_outputPower = new JSlider(0, 100, 0);
+		slider_outputPower.setEnabled(false);
+		slider_outputPower.setSnapToTicks(true);
+		slider_outputPower.setPaintTicks(true);
+		slider_outputPower.setPaintLabels(true);
+		slider_outputPower.setMinorTickSpacing(1);
+		slider_outputPower.setMajorTickSpacing(20);
+		slider_outputPower.setBounds(10, 16, 300, 40);
+		panel_outputPower.add(slider_outputPower);
+
+		textField_outputPower = new JTextField("0");
+		textField_outputPower.setHorizontalAlignment(SwingConstants.RIGHT);
+		textField_outputPower.setEditable(false);
+		textField_outputPower.setColumns(10);
+		textField_outputPower.setBounds(330, 28, 55, 21);
+		panel_outputPower.add(textField_outputPower);
+
+		JLabel label = new JLabel((Icon) null);
+		label.setText("%");
+		label.setHorizontalAlignment(SwingConstants.LEFT);
+		label.setBounds(387, 28, 40, 20);
+		panel_outputPower.add(label);
+
+		JPanel panel_PRR_EM = new MyPanel();
+		panel_PRR_EM.setLayout(null);
+		panel_PRR_EM.setBorder(
+				new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Pulse Repetition Rate - Extended mode",
+						TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panel_PRR_EM.setBounds(10, 220, 482, 65);
+		panel_RS232_SR.add(panel_PRR_EM);
+
+		JSlider slider_PRR_EM = new JSlider(0, 5000, 0);
+		slider_PRR_EM.setSnapToTicks(true);
+		slider_PRR_EM.setPaintTicks(true);
+		slider_PRR_EM.setPaintLabels(true);
+		slider_PRR_EM.setMinorTickSpacing(200);
+		slider_PRR_EM.setMajorTickSpacing(1000);
+		slider_PRR_EM.setEnabled(false);
+		slider_PRR_EM.setBounds(10, 16, 300, 40);
+		panel_PRR_EM.add(slider_PRR_EM);
+
+		textField = new JTextField("0");
+		textField.setHorizontalAlignment(SwingConstants.RIGHT);
+		textField.setEditable(false);
+		textField.setColumns(10);
+		textField.setBounds(330, 28, 55, 21);
+		panel_PRR_EM.add(textField);
+
+		JLabel lblKhz = new JLabel((Icon) null);
+		lblKhz.setText("kHz");
+		lblKhz.setHorizontalAlignment(SwingConstants.LEFT);
+		lblKhz.setBounds(387, 28, 40, 20);
+		panel_PRR_EM.add(lblKhz);
+
+		JPanel panel_1 = new MyPanel();
+		panel_1.setLayout(null);
+		panel_1.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "RS-232 Send/Receive",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panel_1.setBounds(10, 285, 484, 105);
+		panel_RS232_SR.add(panel_1);
+
+		JLabel lblNewLabel_2 = new JLabel("Command:");
+		lblNewLabel_2.setBounds(10, 15, 70, 15);
+		panel_1.add(lblNewLabel_2);
+
+		textField_RS232_Send = new JTextField();
+		textField_RS232_Send.setBounds(10, 35, 350, 21);
+		panel_1.add(textField_RS232_Send);
+		textField_RS232_Send.setColumns(10);
+
+		JButton btnRS232_Send = new JButton("Send");
+		btnRS232_Send.setBounds(370, 34, 93, 23);
+		panel_1.add(btnRS232_Send);
+
+		JLabel lblReplyFromDevice = new JLabel("Reply from device:");
+		lblReplyFromDevice.setBounds(10, 58, 120, 15);
+		panel_1.add(lblReplyFromDevice);
+
+		textField_ReplyFromDevice = new JTextField();
+		textField_ReplyFromDevice.setColumns(10);
+		textField_ReplyFromDevice.setBounds(10, 74, 450, 21);
+		panel_1.add(textField_ReplyFromDevice);
+
+		JPanel panel_UserInterface = new MyPanel();
+		panel_UserInterface.setLayout(null);
+		panel_UserInterface.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Extended PRR",
+				TitledBorder.LEADING, TitledBorder.TOP, null, SystemColor.desktop));
+		panel_UserInterface.setBounds(10, 390, 484, 50);
+		panel_RS232_SR.add(panel_UserInterface);
+
+		JCheckBox chckbxEmergencyStop = new JCheckBox("Emergency stop");
+		chckbxEmergencyStop.setBounds(10, 18, 130, 23);
+		panel_UserInterface.add(chckbxEmergencyStop);
+
+		JCheckBox chckbxGuideLaser = new JCheckBox("Guide laser");
+		chckbxGuideLaser.setBounds(169, 18, 120, 23);
+		panel_UserInterface.add(chckbxGuideLaser);
+
+		JCheckBox chckbxUseExternalModulatiom = new JCheckBox("Use external modulatiom");
+		chckbxUseExternalModulatiom.setBounds(301, 18, 170, 23);
+		panel_UserInterface.add(chckbxUseExternalModulatiom);
+	}
+
+	/**
+	 * 串口模式 左下区域显示PRR、Set
+	 */
+	private void handlePRRAndSetForGate() {
+		JPanel panel_DB25_PRR = new MyPanel();
+		panel_DB25_PRR.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Extended PRR",
+				TitledBorder.LEADING, TitledBorder.TOP, null, SystemColor.desktop));
+		panel_DB25_PRR.setBounds(10, 440, 484, 60);
+		panel_RS232_SR.add(panel_DB25_PRR);
 		panel_DB25_PRR.setLayout(null);
 
 		JLabel lblNewLabel_3 = new JLabel("Minimun PRR     16.0 KHz");
@@ -468,14 +608,12 @@ public class MyFrame extends JFrame {
 		lblMaxmunPrr.setBounds(307, 20, 167, 24);
 		panel_DB25_PRR.add(lblMaxmunPrr);
 
-		JPanel panel_PulseMode = new JPanel();
+		JPanel panel_PulseMode = new MyPanel();
 		panel_PulseMode.setLayout(null);
-		panel_PulseMode.setBorder(new TitledBorder(
-				UIManager.getBorder("TitledBorder.border"),
-				"Adjustable Pulse Mode", TitledBorder.LEADING, TitledBorder.TOP,
-				null, UIManager.getColor("TitledBorder.titleColor")));
-		panel_PulseMode.setBounds(10, 430, 484, 74);
-		panel.add(panel_PulseMode);
+		panel_PulseMode.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Adjustable Pulse Mode",
+				TitledBorder.LEADING, TitledBorder.TOP, null, UIManager.getColor("TitledBorder.titleColor")));
+		panel_PulseMode.setBounds(10, 500, 484, 74);
+		panel_RS232_SR.add(panel_PulseMode);
 
 		JButton btnMutilpulse = new JButton("Mutilpulse");
 		// btnMutilpulse.setActionCommand("Save to laser\r\nEEPROM");
@@ -487,36 +625,12 @@ public class MyFrame extends JFrame {
 		panel_PulseMode.add(btnMonopulse);
 		// btnMonopulse.setActionCommand("Save to laser\r\nEEPROM");
 
-		JPanel panel_PulseDuration = new JPanel();
-		panel_PulseDuration.setLayout(null);
-		panel_PulseDuration.setBorder(
-				new TitledBorder(UIManager.getBorder("TitledBorder.border"),
-						"Adjustable Pulse Duration", TitledBorder.LEADING,
-						TitledBorder.TOP, null, new Color(0, 0, 0)));
-		panel_PulseDuration.setBounds(8, 505, 484, 70);
-		panel.add(panel_PulseDuration);
-
-		JLabel label_3 = new JLabel("ns");
-		label_3.setBounds(140, 20, 39, 38);
-		panel_PulseDuration.add(label_3);
-
-		JButton btnSaveLaser = new JButton("Save to laser \r\nEEPROM");
-		// btnSaveLaser.setActionCommand("Save to laser\r\nEEPROM");
-		btnSaveLaser.setBounds(190, 22, 153, 42);
-		panel_PulseDuration.add(btnSaveLaser);
-
-		JFormattedTextField formattedTextField_2 = new JFormattedTextField();
-		formattedTextField_2.setBounds(10, 22, 120, 36);
-		panel_PulseDuration.add(formattedTextField_2);
-
-		JPanel panel_Burst = new JPanel();
+		JPanel panel_Burst = new MyPanel();
 		panel_Burst.setLayout(null);
-		panel_Burst.setBorder(
-				new TitledBorder(UIManager.getBorder("TitledBorder.border"),
-						"Burst", TitledBorder.LEADING, TitledBorder.TOP, null,
-						new Color(0, 0, 0)));
+		panel_Burst.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Burst",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		panel_Burst.setBounds(10, 575, 484, 64);
-		panel.add(panel_Burst);
+		panel_RS232_SR.add(panel_Burst);
 
 		JButton btnSet_Burst = new JButton("Set");
 		btnSet_Burst.setActionCommand("");
@@ -527,14 +641,12 @@ public class MyFrame extends JFrame {
 		formattedTextField_1.setBounds(10, 18, 120, 36);
 		panel_Burst.add(formattedTextField_1);
 
-		JPanel panel_Simmer = new JPanel();
+		JPanel panel_Simmer = new MyPanel();
 		panel_Simmer.setLayout(null);
-		panel_Simmer.setBorder(
-				new TitledBorder(UIManager.getBorder("TitledBorder.border"),
-						"Simmer Current", TitledBorder.LEADING,
-						TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panel_Simmer.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Simmer Current",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		panel_Simmer.setBounds(10, 640, 482, 75);
-		panel.add(panel_Simmer);
+		panel_RS232_SR.add(panel_Simmer);
 
 		JButton btnSet_Simmer = new JButton("Set");
 		btnSet_Simmer.setActionCommand("");
@@ -550,6 +662,111 @@ public class MyFrame extends JFrame {
 		slider.setBounds(10, 16, 153, 48);
 		panel_Simmer.add(slider);
 
+		this.bindSliderEvent();
+
+		textField_simmer = new JTextField("1 %");
+		textField_simmer.setEditable(false);
+		textField_simmer.setBounds(173, 33, 55, 21);
+		panel_Simmer.add(textField_simmer);
+		textField_simmer.setColumns(10);
+	}
+
+	/**
+	 * 左下区域PRR、Set显示
+	 */
+	private void handlePRRAndSetForDB25() {
+
+		JPanel panel_DB25_PRR = new MyPanel();
+		panel_DB25_PRR.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Extended PRR",
+				TitledBorder.LEADING, TitledBorder.TOP, null, SystemColor.desktop));
+		panel_DB25_PRR.setBounds(10, 335, 484, 85);
+		panel_RS232_SR.add(panel_DB25_PRR);
+		panel_DB25_PRR.setLayout(null);
+
+		JLabel lblNewLabel_3 = new JLabel("Minimun PRR     16.0 KHz");
+		lblNewLabel_3.setBounds(10, 20, 149, 24);
+		panel_DB25_PRR.add(lblNewLabel_3);
+
+		JLabel lblMaxmunPrr = new JLabel("Maxmun PRR     1000.0 KHz");
+		lblMaxmunPrr.setBounds(307, 20, 167, 24);
+		panel_DB25_PRR.add(lblMaxmunPrr);
+
+		JPanel panel_PulseMode = new MyPanel();
+		panel_PulseMode.setLayout(null);
+		panel_PulseMode.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Adjustable Pulse Mode",
+				TitledBorder.LEADING, TitledBorder.TOP, null, UIManager.getColor("TitledBorder.titleColor")));
+		panel_PulseMode.setBounds(10, 430, 484, 74);
+		panel_RS232_SR.add(panel_PulseMode);
+
+		JButton btnMutilpulse = new JButton("Mutilpulse");
+		// btnMutilpulse.setActionCommand("Save to laser\r\nEEPROM");
+		btnMutilpulse.setBounds(10, 22, 153, 42);
+		panel_PulseMode.add(btnMutilpulse);
+
+		JButton btnMonopulse = new JButton("Monopulse");
+		btnMonopulse.setBounds(187, 22, 153, 42);
+		panel_PulseMode.add(btnMonopulse);
+		// btnMonopulse.setActionCommand("Save to laser\r\nEEPROM");
+
+		JPanel panel_PulseDuration = new MyPanel();
+		panel_PulseDuration.setLayout(null);
+		panel_PulseDuration.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"),
+				"Adjustable Pulse Duration", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panel_PulseDuration.setBounds(8, 505, 484, 70);
+		panel_RS232_SR.add(panel_PulseDuration);
+
+		JLabel label_3 = new JLabel("ns");
+		label_3.setBounds(140, 20, 39, 38);
+		panel_PulseDuration.add(label_3);
+
+		JButton btnSaveLaser = new JButton("Save to laser \r\nEEPROM");
+		// btnSaveLaser.setActionCommand("Save to laser\r\nEEPROM");
+		btnSaveLaser.setBounds(190, 22, 153, 42);
+		panel_PulseDuration.add(btnSaveLaser);
+
+		JFormattedTextField formattedTextField_2 = new JFormattedTextField();
+		formattedTextField_2.setBounds(10, 22, 120, 36);
+		panel_PulseDuration.add(formattedTextField_2);
+
+		JPanel panel_Burst = new MyPanel();
+		panel_Burst.setLayout(null);
+		panel_Burst.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Burst",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panel_Burst.setBounds(10, 575, 484, 64);
+		panel_RS232_SR.add(panel_Burst);
+
+		JButton btnSet_Burst = new JButton("Set");
+		btnSet_Burst.setActionCommand("");
+		btnSet_Burst.setBounds(190, 14, 153, 42);
+		panel_Burst.add(btnSet_Burst);
+
+		JFormattedTextField formattedTextField_1 = new JFormattedTextField();
+		formattedTextField_1.setBounds(10, 18, 120, 36);
+		panel_Burst.add(formattedTextField_1);
+
+		JPanel panel_Simmer = new MyPanel();
+		panel_Simmer.setLayout(null);
+		panel_Simmer.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Simmer Current",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panel_Simmer.setBounds(10, 640, 482, 75);
+		panel_RS232_SR.add(panel_Simmer);
+
+		JButton btnSet_Simmer = new JButton("Set");
+		btnSet_Simmer.setActionCommand("");
+		btnSet_Simmer.setBounds(238, 22, 153, 42);
+		panel_Simmer.add(btnSet_Simmer);
+
+		slider = new JSlider(1, 100, 1);
+		slider.setPaintTicks(true);
+		slider.setPaintLabels(true);
+		slider.setSnapToTicks(true);
+		slider.setMajorTickSpacing(20);
+		slider.setMinorTickSpacing(1);
+		slider.setBounds(10, 16, 153, 48);
+		panel_Simmer.add(slider);
+
+		this.bindSliderEvent();
+
 		textField_simmer = new JTextField("1 %");
 		textField_simmer.setEditable(false);
 		textField_simmer.setBounds(173, 33, 55, 21);
@@ -561,21 +778,17 @@ public class MyFrame extends JFrame {
 	/**
 	 * 处理status页面内容
 	 */
-	private void handleStats() {
-		JPanel panel_Status = new JPanel();
-		panel_Status.setBorder(
-				new TitledBorder(UIManager.getBorder("TitledBorder.border"),
-						"Status", TitledBorder.LEADING, TitledBorder.TOP, null,
-						new Color(0, 0, 0)));
+	private void handleStatsForDB25() {
+		JPanel panel_Status = new MyPanel();
+		panel_Status.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Status",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		panel_Status.setBounds(504, 10, 504, 320);
-		panel.add(panel_Status);
+		panel_RS232_SR.add(panel_Status);
 		panel_Status.setLayout(null);
 
-		JPanel panel_Monitor1 = new JPanel();
-		panel_Monitor1.setBorder(
-				new TitledBorder(UIManager.getBorder("TitledBorder.border"),
-						"Monitor", TitledBorder.LEADING, TitledBorder.TOP, null,
-						SystemColor.desktop));
+		JPanel panel_Monitor1 = new MyPanel();
+		panel_Monitor1.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Monitor",
+				TitledBorder.LEADING, TitledBorder.TOP, null, SystemColor.desktop));
 		panel_Monitor1.setBounds(10, 15, 227, 300);
 		panel_Status.add(panel_Monitor1);
 		panel_Monitor1.setLayout(null);
@@ -607,10 +820,6 @@ public class MyFrame extends JFrame {
 		label_Warning = new JLabel(icon_red2);
 		label_Warning.setBounds(15, 165, 20, 20);
 		panel_Monitor1.add(label_Warning);
-
-		JButton btnResetAlarms = new JButton("Reset Alarms");
-		btnResetAlarms.setBounds(58, 222, 137, 48);
-		panel_Monitor1.add(btnResetAlarms);
 
 		JLabel lblHighBackReflection = new JLabel((Icon) null);
 		lblHighBackReflection.setHorizontalAlignment(SwingConstants.LEFT);
@@ -657,11 +866,9 @@ public class MyFrame extends JFrame {
 		lblWarnings.setBounds(55, 165, 150, 20);
 		panel_Monitor1.add(lblWarnings);
 
-		JPanel panel_Monitor2 = new JPanel();
-		panel_Monitor2.setBorder(
-				new TitledBorder(UIManager.getBorder("TitledBorder.border"),
-						"Monitor", TitledBorder.LEADING, TitledBorder.TOP, null,
-						SystemColor.desktop));
+		JPanel panel_Monitor2 = new MyPanel();
+		panel_Monitor2.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Monitor",
+				TitledBorder.LEADING, TitledBorder.TOP, null, SystemColor.desktop));
 		panel_Monitor2.setBounds(247, 15, 237, 300);
 		panel_Status.add(panel_Monitor2);
 		panel_Monitor2.setLayout(null);
@@ -787,85 +994,76 @@ public class MyFrame extends JFrame {
 	}
 
 	/**
+	 * status for gate
+	 */
+	private void handleStatusForGate() {
+		this.handleStatsForDB25();
+		JButton btnResetAlarms = new JButton("Reset Alarms");
+		btnResetAlarms.setBounds(58, 222, 137, 48);
+		panel_Monitor1.add(btnResetAlarms);
+	}
+
+	/**
 	 * 处理页面右下显示区域
 	 */
-	private void handleInfos() {
-		JPanel panel_Monitor3 = new JPanel();
+	private void handleInfosForDB25() {
+		JPanel panel_Monitor3 = new MyPanel();
 		panel_Monitor3.setBackground(UIManager.getColor("Panel.background"));
-		panel_Monitor3.setBorder(
-				new TitledBorder(UIManager.getBorder("TitledBorder.border"),
-						"Monitor", TitledBorder.LEADING, TitledBorder.TOP, null,
-						SystemColor.desktop));
+		panel_Monitor3.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Monitor",
+				TitledBorder.LEADING, TitledBorder.TOP, null, SystemColor.desktop));
 		panel_Monitor3.setBounds(502, 333, 248, 180);
-		panel.add(panel_Monitor3);
+		panel_RS232_SR.add(panel_Monitor3);
 		panel_Monitor3.setLayout(new BorderLayout(0, 0));
 
 		table_Monitor = new JTable();
-		table_Monitor
-				.setModel(
-						new DefaultTableModel(
-								new Object[][] {
-										{ "Module Tempelete", "19.4",
-												"\u2103" },
-										{ "Remote Head Temp.", "-", "\u2103" },
-										{ "Main Supply Voltage ", "23.7", "V" },
-										{ "Housekeeping Voltage ", "23.5",
-												"V" },
-										{ "Back Refl. Counter ", "0", "" },
-										{ "Current Session BR ", "0", null }, },
-								new String[] { "", "", "" }));
-		table_Monitor.getColumnModel().getColumn(0).setPreferredWidth(159);
-		table_Monitor.getColumnModel().getColumn(2).setPreferredWidth(45);
+		table_Monitor.setModel(new DefaultTableModel(
+				new Object[][] { { "Module Tempelete", "19.4", "\u2103" }, { "Remote Head Temp.", "-", "\u2103" },
+						{ "Main Supply Voltage ", "23.7", "V" }, { "Housekeeping Voltage ", "23.5", "V" },
+						{ "Back Refl. Counter ", "0", "" }, { "Current Session BR ", "0", null }, },
+				new String[] { "", "", "" }));
+		table_Monitor.getColumnModel().getColumn(0).setPreferredWidth(180);
+		table_Monitor.getColumnModel().getColumn(2).setPreferredWidth(30);
 		table_Monitor.setShowGrid(false);
 		table_Monitor.setEnabled(false);
 		table_Monitor.setBackground(UIManager.getColor("Panel.background"));
 		panel_Monitor3.add(table_Monitor);
 
-		JPanel panel_info = new JPanel();
-		panel_info
-				.setBorder(new TitledBorder(null, "Info", TitledBorder.LEADING,
-						TitledBorder.TOP, null, SystemColor.desktop));
+		JPanel panel_info = new MyPanel();
+		panel_info.setBorder(
+				new TitledBorder(null, "Info", TitledBorder.LEADING, TitledBorder.TOP, null, SystemColor.desktop));
 		panel_info.setBounds(760, 333, 248, 180);
-		panel.add(panel_info);
+		panel_RS232_SR.add(panel_info);
 		panel_info.setLayout(new BorderLayout(0, 0));
 
 		table_Info = new JTable();
 		table_Info.setEnabled(false);
 		table_Info.setShowGrid(false);
-		table_Info.setModel(new DefaultTableModel(
-				new Object[][] { { "Model", "XXXX" },
-						{ "Manufacturer", "XXXX" },
-						{ "Serial Number ", "XXXX" }, { "Firmware", "XXXX" }, },
-				new String[] { "", "" }));
+		table_Info
+				.setModel(
+						new DefaultTableModel(
+								new Object[][] { { "Model", "XXXX" }, { "Manufacturer", "XXXX" },
+										{ "Serial Number ", "XXXX" }, { "Firmware", "XXXX" }, },
+								new String[] { "", "" }));
 		table_Info.getColumnModel().getColumn(0).setPreferredWidth(141);
 		table_Info.setBackground(UIManager.getColor("Panel.background"));
 		panel_info.add(table_Info);
 
-		JPanel panel_OParam = new JPanel();
-		panel_OParam.setBorder(
-				new TitledBorder(UIManager.getBorder("TitledBorder.border"),
-						"Operating Parameters", TitledBorder.LEADING,
-						TitledBorder.TOP, null, new Color(0, 0, 0)));
+		JPanel panel_OParam = new MyPanel();
+		panel_OParam.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Operating Parameters",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		panel_OParam.setBounds(504, 524, 246, 191);
-		panel.add(panel_OParam);
+		panel_RS232_SR.add(panel_OParam);
 		panel_OParam.setLayout(new BorderLayout(0, 0));
 
 		table_OperParam = new JTable();
 		table_OperParam.setBackground(UIManager.getColor("Panel.background"));
 		table_OperParam.setShowGrid(false);
 		table_OperParam.setEnabled(false);
-		table_OperParam
-				.setModel(
-						new DefaultTableModel(
-								new Object[][] { { "Average Power", "0", "W" },
-										{ "Max Average Power", "1.6", "W" },
-										{ "Pulse Duration", "-", "ns" },
-										{ "Pulse Energy", "0", "mJ" },
-										{ "Peak Power", "-", "kW" },
-										{ "Set Power", "0", "%" },
-										{ "Pulse Repetition Rate", "1.5",
-												"kHz" }, },
-								new String[] { "", "", "" }));
+		table_OperParam.setModel(new DefaultTableModel(
+				new Object[][] { { "Average Power", "0", "W" }, { "Max Average Power", "1.6", "W" },
+						{ "Pulse Duration", "-", "ns" }, { "Pulse Energy", "0", "mJ" }, { "Peak Power", "-", "kW" },
+						{ "Set Power", "0", "%" }, { "Pulse Repetition Rate", "1.5", "kHz" }, },
+				new String[] { "", "", "" }));
 		table_OperParam.getColumnModel().getColumn(0).setResizable(false);
 		table_OperParam.getColumnModel().getColumn(0).setPreferredWidth(136);
 		table_OperParam.getColumnModel().getColumn(1).setPreferredWidth(44);
@@ -873,23 +1071,18 @@ public class MyFrame extends JFrame {
 		table_OperParam.getColumnModel().getColumn(2).setPreferredWidth(46);
 		panel_OParam.add(table_OperParam, BorderLayout.CENTER);
 
-		JPanel panel_NParam = new JPanel();
-		panel_NParam.setBorder(
-				new TitledBorder(UIManager.getBorder("TitledBorder.border"),
-						"Nominal Parameters", TitledBorder.LEADING,
-						TitledBorder.TOP, null, new Color(0, 0, 0)));
+		JPanel panel_NParam = new MyPanel();
+		panel_NParam.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Nominal Parameters",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		panel_NParam.setBounds(760, 524, 248, 191);
-		panel.add(panel_NParam);
+		panel_RS232_SR.add(panel_NParam);
 
 		tableNomParam = new JTable();
 		tableNomParam.setBackground(UIManager.getColor("Panel.background"));
 		tableNomParam.setModel(new DefaultTableModel(
-				new Object[][] { { "Average Power", "20.0", "W" },
-						{ "Pulse Duration", "80", "ns" },
-						{ "Pulse Energy", "1.00", "mJ" },
-						{ "Peak Power", "12.5", "kW" },
-						{ "Minimun PRR", "19.9", "kHz" },
-						{ "Maxmun PRR", "1000", "kHz" }, },
+				new Object[][] { { "Average Power", "20.0", "W" }, { "Pulse Duration", "80", "ns" },
+						{ "Pulse Energy", "1.00", "mJ" }, { "Peak Power", "12.5", "kW" },
+						{ "Minimun PRR", "19.9", "kHz" }, { "Maxmun PRR", "1000", "kHz" }, },
 				new String[] { "", "", "" }));
 		tableNomParam.getColumnModel().getColumn(0).setResizable(false);
 		tableNomParam.getColumnModel().getColumn(0).setPreferredWidth(121);
@@ -904,7 +1097,100 @@ public class MyFrame extends JFrame {
 	 * 处理gate页面内容
 	 */
 	private void handleGate() {
+		handleItemAndMode();
+		handleGate_Control();
+		handlePRRAndSetForGate();
+		handleStatusForGate();
+		handleInfosForGate();
+	}
 
+	/**
+	 * 处理页面右下显示区域
+	 */
+	private void handleInfosForGate() {
+		JPanel panel_Monitor3 = new MyPanel();
+		panel_Monitor3.setBackground(UIManager.getColor("Panel.background"));
+		panel_Monitor3.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Monitor",
+				TitledBorder.LEADING, TitledBorder.TOP, null, SystemColor.desktop));
+		panel_Monitor3.setBounds(502, 333, 248, 180);
+		panel_RS232_SR.add(panel_Monitor3);
+		panel_Monitor3.setLayout(new BorderLayout(0, 0));
+
+		table_Monitor = new JTable();
+		table_Monitor.setModel(new DefaultTableModel(
+				new Object[][] { { "Module Tempelete", "19.4", "\u2103" }, { "Remote Head Temp.", "-", "\u2103" },
+						{ "Main Supply Voltage ", "23.7", "V" }, { "Back Refl. Counter ", "0", "" }, },
+				new String[] { "", "", "" }));
+		table_Monitor.getColumnModel().getColumn(0).setPreferredWidth(180);
+		table_Monitor.getColumnModel().getColumn(2).setPreferredWidth(30);
+		table_Monitor.setShowGrid(false);
+		table_Monitor.setEnabled(false);
+		table_Monitor.setBackground(UIManager.getColor("Panel.background"));
+		panel_Monitor3.add(table_Monitor);
+
+		JPanel panel_info = new MyPanel();
+		panel_info.setBorder(
+				new TitledBorder(null, "Info", TitledBorder.LEADING, TitledBorder.TOP, null, SystemColor.desktop));
+		panel_info.setBounds(760, 333, 248, 180);
+		panel_RS232_SR.add(panel_info);
+		panel_info.setLayout(new BorderLayout(0, 0));
+
+		table_Info = new JTable();
+		table_Info.setEnabled(false);
+		table_Info.setShowGrid(false);
+		table_Info
+				.setModel(
+						new DefaultTableModel(
+								new Object[][] { { "Model", "XXXX" }, { "Manufacturer", "XXXX" },
+										{ "Serial Number ", "XXXX" }, { "Firmware", "XXXX" }, },
+								new String[] { "", "" }));
+		table_Info.getColumnModel().getColumn(0).setPreferredWidth(141);
+		table_Info.setBackground(UIManager.getColor("Panel.background"));
+		panel_info.add(table_Info);
+
+		JPanel panel_OParam = new MyPanel();
+		panel_OParam.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Operating Parameters",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panel_OParam.setBounds(504, 524, 246, 191);
+		panel_RS232_SR.add(panel_OParam);
+		panel_OParam.setLayout(new BorderLayout(0, 0));
+
+		table_OperParam = new JTable();
+		table_OperParam.setBackground(UIManager.getColor("Panel.background"));
+		table_OperParam.setShowGrid(false);
+		table_OperParam.setEnabled(false);
+		table_OperParam.setModel(new DefaultTableModel(
+				new Object[][] { { "Average Power", "0", "W" }, { "Max Average Power", "1.6", "W" },
+						{ "Pulse Duration", "-", "ns" }, { "Pulse Energy", "0", "mJ" }, { "Peak Power", "-", "kW" },
+						{ "Set Power", "0", "%" }, { "Pulse Repetition Rate", "1.5", "kHz" }, },
+				new String[] { "", "", "" }));
+		table_OperParam.getColumnModel().getColumn(0).setResizable(false);
+		table_OperParam.getColumnModel().getColumn(0).setPreferredWidth(136);
+		table_OperParam.getColumnModel().getColumn(1).setPreferredWidth(44);
+		table_OperParam.getColumnModel().getColumn(2).setResizable(false);
+		table_OperParam.getColumnModel().getColumn(2).setPreferredWidth(46);
+		panel_OParam.add(table_OperParam, BorderLayout.CENTER);
+
+		JPanel panel_NParam = new MyPanel();
+		panel_NParam.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Nominal Parameters",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panel_NParam.setBounds(760, 524, 248, 191);
+		panel_RS232_SR.add(panel_NParam);
+
+		tableNomParam = new JTable();
+		tableNomParam.setBackground(UIManager.getColor("Panel.background"));
+		tableNomParam.setModel(new DefaultTableModel(
+				new Object[][] { { "Average Power", "20.0", "W" }, { "Pulse Duration", "80", "ns" },
+						{ "Pulse Energy", "1.00", "mJ" }, { "Peak Power", "12.5", "kW" },
+						{ "Minimun PRR", "19.9", "kHz" }, { "Maxmun PRR", "1000", "kHz" }, },
+				new String[] { "", "", "" }));
+		tableNomParam.getColumnModel().getColumn(0).setResizable(false);
+		tableNomParam.getColumnModel().getColumn(0).setPreferredWidth(121);
+		tableNomParam.getColumnModel().getColumn(1).setResizable(false);
+		panel_NParam.setLayout(new BorderLayout(0, 0));
+		tableNomParam.setShowGrid(false);
+		tableNomParam.setEnabled(false);
+		panel_NParam.add(tableNomParam);
 	}
 
 	/**
@@ -912,7 +1198,6 @@ public class MyFrame extends JFrame {
 	 */
 	private void bindEvent() {
 		this.bindAboutEvent();
-		this.bindSliderEvent();
 		this.bindConnectEvent();
 	}
 
@@ -922,8 +1207,52 @@ public class MyFrame extends JFrame {
 	private void bindAboutEvent() {
 		this.mntmAbout.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(MyFrame.this,
-						"武汉安扬激光技术有限责任公司\r\n");
+				JOptionPane.showMessageDialog(MyFrame.this, "武汉安扬激光技术有限责任公司\r\n");
+			}
+		});
+	}
+
+	/**
+	 * 退出事件 记录日志啥的
+	 */
+	private void bindExitEvent() {
+		MyFrame.this.addWindowListener(new WindowListener() {
+
+			@Override
+			public void windowOpened(WindowEvent e) {
+
+			}
+
+			@Override
+			public void windowIconified(WindowEvent e) {
+
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent e) {
+
+			}
+
+			@Override
+			public void windowDeactivated(WindowEvent e) {
+
+			}
+
+			@Override
+			// 退出事件
+			public void windowClosing(WindowEvent e) {
+				// TODO
+
+			}
+
+			@Override
+			public void windowClosed(WindowEvent e) {
+
+			}
+
+			@Override
+			public void windowActivated(WindowEvent e) {
+
 			}
 		});
 	}
@@ -993,7 +1322,7 @@ public class MyFrame extends JFrame {
 						// 进入主页面
 						handleDB25();
 						// 界面重绘
-						panel.repaint();
+						panel_RS232_SR.repaint();
 						// 处理每隔500毫秒刷新状态
 						dealConnect();
 					}
@@ -1012,7 +1341,7 @@ public class MyFrame extends JFrame {
 					lab_connect.setBounds(29, 22, 30, 30);
 					panel_Connect.add(lab_connect);
 					lab_connect.repaint();
-					panel.repaint();
+					panel_RS232_SR.repaint();
 				}
 			}
 		});
@@ -1023,6 +1352,21 @@ public class MyFrame extends JFrame {
 	 */
 	private void dealConnect() {
 		// TODO
+	}
+
+	/**
+	 * 继承JPanel
+	 * 
+	 * @author Administrator
+	 *
+	 */
+	class MyPanel extends JPanel {
+		protected void paintComponent(Graphics g) {
+			ImageIcon icon = new ImageIcon("resource//bgimg.jpg");
+			Image img = icon.getImage();
+			g.drawImage(img, 0, 0, icon.getIconWidth(), icon.getIconHeight(), icon.getImageObserver());
+
+		}
 	}
 
 }

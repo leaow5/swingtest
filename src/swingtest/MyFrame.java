@@ -1323,7 +1323,7 @@ public class MyFrame extends JFrame {
 						handleDB25();
 						// 界面重绘
 						panel_RS232_SR.repaint();
-						// 处理每隔500毫秒刷新状态
+						// 处理每隔2000毫秒刷新状态,2000毫秒由参数配置，详见INTERVAL_TIME
 						dealConnect();
 					}
 				} else {

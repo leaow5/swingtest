@@ -12,7 +12,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.text.ParseException;
 import java.util.List;
+import java.util.Timer;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -37,6 +39,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -46,7 +49,11 @@ import org.jvnet.substance.api.SubstanceSkin;
 import org.jvnet.substance.skin.BusinessBlueSteelSkin;
 import org.jvnet.substance.skin.SubstanceBusinessBlueSteelLookAndFeel;
 
+import com.spark.core.CommandLineCallBack;
+import com.spark.core.ComponentRepaintCallBack;
 import com.spark.core.SerialPortFactory;
+import com.spark.core.SynCallBack;
+import com.spark.utils.StringTransformUtil;
 import com.spark.utils.WinEnvUtils;
 
 public class MyFrame extends JFrame {
@@ -107,6 +114,8 @@ public class MyFrame extends JFrame {
 	private JTextField textField_RS232_Send;
 	private JTextField textField_ReplyFromDevice;
 	private JPanel panel_Monitor1;
+	private volatile RunTimeContext context = new RunTimeContext();
+	private Timer timer;
 
 	/**
 	 * Launch the application.
@@ -625,7 +634,7 @@ public class MyFrame extends JFrame {
 		panel_PulseMode.add(btnMonopulse);
 		// btnMonopulse.setActionCommand("Save to laser\r\nEEPROM");
 
-		JPanel panel_Burst = new MyPanel();
+		final JPanel panel_Burst = new MyPanel();
 		panel_Burst.setLayout(null);
 		panel_Burst.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Burst",
 				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
@@ -637,7 +646,7 @@ public class MyFrame extends JFrame {
 		btnSet_Burst.setBounds(190, 14, 153, 42);
 		panel_Burst.add(btnSet_Burst);
 
-		JFormattedTextField formattedTextField_1 = new JFormattedTextField();
+		final JFormattedTextField formattedTextField_1 = new JFormattedTextField();
 		formattedTextField_1.setBounds(10, 18, 120, 36);
 		panel_Burst.add(formattedTextField_1);
 
@@ -728,7 +737,7 @@ public class MyFrame extends JFrame {
 		formattedTextField_2.setBounds(10, 22, 120, 36);
 		panel_PulseDuration.add(formattedTextField_2);
 
-		JPanel panel_Burst = new MyPanel();
+		final JPanel panel_Burst = new MyPanel();
 		panel_Burst.setLayout(null);
 		panel_Burst.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Burst",
 				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
@@ -738,10 +747,59 @@ public class MyFrame extends JFrame {
 		JButton btnSet_Burst = new JButton("Set");
 		btnSet_Burst.setActionCommand("");
 		btnSet_Burst.setBounds(190, 14, 153, 42);
+		// btnSet_Burst 设置按钮
+		btnSet_Burst.addActionListener(new ActionListener() {
+
+			public void actionPerformed(ActionEvent e) {
+				logger.info("btnSet_Burst按钮触发");
+				CommandLineCallBack ccb = new CommandLineCallBack(panel_Burst);
+				PropertiesUtil pro = PropertiesUtil.getDefaultOrderPro();
+				// pro.getProperty(key)
+				String key = OrderConst.BURST_BENCHMARK_ORDER;
+				String order;
+				if (pro.getProperty(context.getMach() + "_" + key) != null) {
+					order = pro.getProperty(context.getMach() + "_" + key);
+				} else {
+
+					order = pro.getProperty(key);
+				}
+				if (order != null || order.equals("")) {
+					// String value = formattedTextField_1.getText();
+					// if (value == null || value.equals("")) {
+					// return;
+					// }
+
+					// ccb.setOrderMessage(StringTransformUtil.hexToBytes(order));
+				}
+				// CommandLineCallBack ccb = new CommandLineCallBack(slider);
+				// PropertiesUtil pro = PropertiesUtil.getDefaultOrderPro();
+				// pro.getProperty(key)
+				// 没有设置命令，只有查询命令
+
+			}
+
+		});
 		panel_Burst.add(btnSet_Burst);
 
-		JFormattedTextField formattedTextField_1 = new JFormattedTextField();
+		final JFormattedTextField formattedTextField_1 = new JFormattedTextField();
 		formattedTextField_1.setBounds(10, 18, 120, 36);
+		formattedTextField_1.addKeyListener(new java.awt.event.KeyAdapter() {
+			public void keyReleased(java.awt.event.KeyEvent evt) {
+				String old = formattedTextField_1.getText();
+				JFormattedTextField.AbstractFormatter formatter = formattedTextField_1.getFormatter();
+				if (!old.equals("")) {
+					if (formatter != null) {
+						String str = formattedTextField_1.getText();
+						try {
+							long page = (Long) formatter.stringToValue(str);
+							formattedTextField_1.setText(page + "");
+						} catch (ParseException pe) {
+							formattedTextField_1.setText("1");// 解析异常直接将文本框中值设置为1
+						}
+					}
+				}
+			}
+		});
 		panel_Burst.add(formattedTextField_1);
 
 		JPanel panel_Simmer = new MyPanel();
@@ -754,6 +812,21 @@ public class MyFrame extends JFrame {
 		JButton btnSet_Simmer = new JButton("Set");
 		btnSet_Simmer.setActionCommand("");
 		btnSet_Simmer.setBounds(238, 22, 153, 42);
+		// Simmer按钮设置事件
+		btnSet_Simmer.addActionListener(new ActionListener() {
+
+			public void actionPerformed(ActionEvent e) {
+				logger.info("btnSet_Simmer按钮触发");
+				int value = slider.getValue();
+				logger.info("Simmer值是 " + value);
+				// CommandLineCallBack ccb = new CommandLineCallBack(slider);
+				// PropertiesUtil pro = PropertiesUtil.getDefaultOrderPro();
+				// pro.getProperty(key)
+				// 没有设置命令，只有查询命令
+
+			}
+
+		});
 		panel_Simmer.add(btnSet_Simmer);
 
 		slider = new JSlider(1, 100, 1);
@@ -997,6 +1070,7 @@ public class MyFrame extends JFrame {
 	 * status for gate
 	 */
 	private void handleStatusForGate() {
+		panel_Monitor1 = new MyPanel();
 		this.handleStatsForDB25();
 		JButton btnResetAlarms = new JButton("Reset Alarms");
 		btnResetAlarms.setBounds(58, 222, 137, 48);
@@ -1305,7 +1379,7 @@ public class MyFrame extends JFrame {
 					if (WinEnvUtils.getAvailableSerialPorts(name)) {
 						// 初始化连接对象
 						try {
-							SerialPortFactory.getSerialPort(name);
+							SerialPortFactory.connect(name);
 						} catch (Exception ex) {
 							logger.error("打开连接时发生异常", ex);
 						}
@@ -1319,17 +1393,25 @@ public class MyFrame extends JFrame {
 						panel_Connect.add(lab_connect);
 						// 局部重绘
 						lab_connect.repaint();
-						// 进入主页面
+						// 进入DB25主页面
 						handleDB25();
+						// 进入Gate主页面
+//						handleGate();
 						// 界面重绘
 						panel_RS232_SR.repaint();
 						// 处理每隔2000毫秒刷新状态,2000毫秒由参数配置，详见INTERVAL_TIME
-						dealConnect();
+						try {
+							dealConnect();
+						} catch (Exception e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
 					}
 				} else {
 					// 断开连接操作
 					try {
-						SerialPortFactory.getSerialPort(null).close();
+						SerialPortFactory.connect(null).close();
+
 					} catch (Exception ex) {
 						logger.error("关闭连接时发生异常", ex);
 					}
@@ -1349,9 +1431,64 @@ public class MyFrame extends JFrame {
 
 	/**
 	 * 处理连接内容，每500ms进行一次连接通信
+	 * 
+	 * @throws Exception
 	 */
-	private void dealConnect() {
-		// TODO
+	private void dealConnect() throws Exception {
+		// 还是要先连接下，判断是什么机型
+		
+		String mach = "SC-5";
+		PropertiesUtil pro = PropertiesUtil.getDefaultOrderPro();
+//		String macOrder = OrderConst.QUERY_MACHINE_ORDER_MATCH;
+		// TODO 激光开启
+		SynCallBack scb = new SynCallBack();
+		String laserOn = mach+"_"+OrderConst.LASER_ON_ORDER;
+		scb.setOrderMessage(StringTransformUtil.hexToBytes(pro.getProperty(laserOn)));
+		SerialPortFactory.sendMessage(scb);
+		//接受返回命令
+		String revMess = SerialPortFactory.getSynCallBackReceived(scb);
+		logger.error(revMess);
+		
+//		String mach = SerialPortFactory.getSynCallBackReceived(scb);
+		// TODO 间隔
+		
+		// TODO 激光关闭
+		SynCallBack scb2 = new SynCallBack();
+		String laserClose = mach+"_"+OrderConst.LASER_COLSE_ORDER;
+		scb2.setOrderMessage(StringTransformUtil.hexToBytes(pro.getProperty(laserClose)));
+		SerialPortFactory.sendMessage(scb2);
+		revMess = SerialPortFactory.getSynCallBackReceived(scb2);
+		logger.error(revMess);
+		
+		// TODO 功率调节
+		SynCallBack scb3 = new SynCallBack();
+		String power_adjust = mach+"_"+OrderConst.POWER_ADJUST_BENCHMARK_ORDER;
+		scb3.setOrderMessage(StringTransformUtil.hexToBytes(pro.getProperty(power_adjust)));
+		SerialPortFactory.sendMessage(scb3);
+		revMess = SerialPortFactory.getSynCallBackReceived(scb3);
+		logger.error(revMess);
+		
+		// TODO 异常查询
+		SynCallBack scb4 = new SynCallBack();
+		String exceptionOder = mach+"_"+OrderConst.ERROR_QUERY_ORDER;
+		scb4.setOrderMessage(StringTransformUtil.hexToBytes(pro.getProperty(exceptionOder)));
+		SerialPortFactory.sendMessage(scb4);
+		revMess = SerialPortFactory.getSynCallBackReceived(scb4);
+		logger.error(revMess);
+		
+		if (mach == null || mach.equals("")) {
+			// throw new Exception("没有返回机型");
+		}
+		// 这里是具体的机型设置
+		// TODO 先设置为PicoYL
+		mach = "PicoYL";
+		if (context == null) {
+			context = new RunTimeContext();
+			context.setMach(mach);
+		} else {
+			context.setMach(mach);
+		}
+		startTimerTask();
 	}
 
 	/**
@@ -1367,6 +1504,135 @@ public class MyFrame extends JFrame {
 			g.drawImage(img, 0, 0, icon.getIconWidth(), icon.getIconHeight(), icon.getImageObserver());
 
 		}
+	}
+
+	/**
+	 * 获取机型信息.
+	 */
+	private void sendMacInfoOrder() {
+		PropertiesUtil pro = PropertiesUtil.getDefaultOrderPro();
+		ComponentRepaintCallBack crcb = new ComponentRepaintCallBack(table_Info) {
+			@Override
+			public void execute(Object... objects) {
+
+				if (objects.length == 0) {
+					return;
+				}
+				String mess = objects[0].toString();
+				JTable target = (JTable) getComponent();
+				TableModel dataModel = target.getModel();
+				// 通用的Jtable处理方式，其他的也是如此
+				int length = dataModel.getRowCount();
+				// 第一行第二列内容,例子如下
+				String value = dataModel.getValueAt(0, 0).toString();
+				dataModel.setValueAt("PicoYL", 0, 0);
+				System.out.println(value);
+				// 可能需要知道当前的机型是什么
+				String mach = context.getMach();
+				System.out.println(mach);
+				System.out.println(getOrderMessage());
+				System.out.println(mess);
+			}
+
+		};
+		String macOrder = "";
+		if (context.getMach() == null) {
+			macOrder = OrderConst.QUERY_MACHINE_ORDER_MATCH;
+		} else {
+			macOrder = context.getMach() + "_" + OrderConst.QUERY_MACHINE_ORDER_MATCH;
+			if (pro.getProperty(macOrder) == null || pro.getProperty(macOrder).equals("")) {
+				macOrder = OrderConst.QUERY_MACHINE_ORDER_MATCH;
+			}
+		}
+		crcb.setOrderMessage(StringTransformUtil.hexToBytes(pro.getProperty(macOrder)));
+		crcb.setPriority(0);
+		SerialPortFactory.sendMessage(crcb);
+	}
+
+	private void sendTemperatureInfoOrder() {
+		final PropertiesUtil pro = PropertiesUtil.getDefaultOrderPro();
+		ComponentRepaintCallBack crcb = new ComponentRepaintCallBack(table_Info) {
+			@Override
+			public void execute(Object... objects) {
+
+				if (objects.length == 0) {
+					return;
+				}
+				String mess = objects[0].toString();
+				String temp = mess.substring(11, 13);
+				int tempInteger = Integer.valueOf(temp, 16);
+
+				String mach = context.getMach();
+				String base = pro.getProperty(mach + "_" + OrderConst.STATE_QUERY_RESLUT_TEMPL_START);
+				String baseNum = pro.getProperty(mach + "_" + OrderConst.STATE_QUERY_RESLUT_TEMPL);
+				int baseInteger = Integer.valueOf(base, 16);
+				int gap = tempInteger - baseInteger;
+				int finalNum = Integer.valueOf(baseNum) + gap;
+
+				JTable target = (JTable) getComponent();
+				TableModel dataModel = target.getModel();
+
+				// 第一行第二列内容,例子如下
+				String value = dataModel.getValueAt(0, 0).toString();
+				dataModel.setValueAt("1111" + finalNum, 0, 1);
+				System.out.println(value);
+				// 可能需要知道当前的机型是什么
+				System.out.println(mach);
+				System.out.println(getOrderMessage());
+				System.out.println(mess);
+			}
+
+		};
+		String macOrder = "";
+		if (context.getMach() == null) {
+			macOrder = OrderConst.STATE_QUERY_ORDER;
+		} else {
+			macOrder = context.getMach() + "_" + OrderConst.STATE_QUERY_ORDER;
+			if (pro.getProperty(macOrder) == null || pro.getProperty(macOrder).equals("")) {
+				macOrder = OrderConst.STATE_QUERY_ORDER;
+			}
+		}
+		crcb.setOrderMessage(StringTransformUtil.hexToBytes(pro.getProperty(macOrder)));
+		crcb.setPriority(0);
+		SerialPortFactory.sendMessage(crcb);
+
+	}
+
+	/**
+	 * 定时任务启动
+	 */
+
+	private boolean startTimerTask() {
+		timer = new Timer(true);
+		final PropertiesUtil pro = PropertiesUtil.getDefaultOrderPro();
+		timer.schedule(new java.util.TimerTask() {
+			public void run() {
+				// TODO 激光开启
+				SynCallBack scb = new SynCallBack();
+				String mach = "SC-5";
+				String laserOn = mach+"_"+OrderConst.LASER_ON_ORDER;
+				scb.setOrderMessage(StringTransformUtil.hexToBytes(pro.getProperty(laserOn)));
+				SerialPortFactory.sendMessage(scb);
+				//接受返回命令
+				String revMess = SerialPortFactory.getSynCallBackReceived(scb);
+				logger.error(revMess);
+			}
+		}, 0, Integer.valueOf(pro.getProperty(OrderConst.INTERVAL_TIME)));
+		
+		Timer timer = new Timer(true);
+		timer.schedule(new java.util.TimerTask() {
+			public void run() {
+				// TODO 功率调节
+				SynCallBack scb3 = new SynCallBack();
+				String mach = "SC-5";
+				String power_adjust = mach+"_"+OrderConst.POWER_ADJUST_BENCHMARK_ORDER;
+				scb3.setOrderMessage(StringTransformUtil.hexToBytes(pro.getProperty(power_adjust)));
+				SerialPortFactory.sendMessage(scb3);
+				String revMess = SerialPortFactory.getSynCallBackReceived(scb3);
+				logger.error(revMess);
+			}
+		}, 0, Integer.valueOf(pro.getProperty(OrderConst.INTERVAL_TIME)));
+		return true;
 	}
 
 }

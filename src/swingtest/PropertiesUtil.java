@@ -31,7 +31,7 @@ public class PropertiesUtil {
 
 	public static PropertiesUtil getDefaultOrderPro() {
 		File dirFile = SystemUtils.getUserDir();
-		File proFile = new File(dirFile, "order.properties");
+		File proFile = new File(dirFile, "system.properties");
 		PropertiesUtil util = new PropertiesUtil(proFile.toString());
 		return util;
 	}
